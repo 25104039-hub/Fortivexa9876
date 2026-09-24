@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FORTIVEXA | Predictive Analytics Framework for Cybercrime Complaints (TRL 5)</title>
+  <meta name="description" content="FORTIVEXA - SIH 2026 Final Round Prototype for Ministry of Home Affairs / I4C (Problem Statement SIH26184)">
+  
+  <!-- Offline Leaflet CSS -->
+  <link rel="stylesheet" href="css/leaflet.css">
+  <!-- Custom Tactical Style -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Tailwind CSS CDN with offline fallback -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            navy: {
+              850: '#0c1527',
+              900: '#070f20',
+              950: '#050811'
+            },
+            cyan: {
+              450: '#06b6d4',
+              550: '#0891b2'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#050811] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200 tactical-grid">
+
+  <!-- ========================================================================= -->
+  <!-- 1. PERSISTENT ETHICAL & TRL 5 SYSTEM BANNER -->
+  <!-- ========================================================================= -->
+  <div class="bg-gradient-to-r from-cyan-950 via-slate-900 to-blue-950 border-b border-cyan-500/30 px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-2 shadow-lg">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 tracking-wider">
+        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+        FORTIVEXA | TRL 5 SYSTEM VALIDATION
+      </span>
+      <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30">
+        RELEVANT SIMULATED ENVIRONMENT
+      </span>
+      <span class="hidden md:inline text-slate-400 text-[11px]">
+        SIH 2026 Problem ID: <strong class="text-slate-200">SIH26184</strong> (MHA / I4C) • Team: <strong class="text-cyan-300">25 (FORTIVEXA)</strong>
+      </span>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <div class="hidden sm:flex items-center gap-2 text-[11px] font-mono text-slate-400">
+        <span>NCRP Gateway: <strong class="text-emerald-400">ONLINE (99.8%)</strong></span>
+        <span>•</span>
+        <span>GNN Engine: <strong class="text-cyan-400">ACTIVE</strong></span>
+        <span>•</span>
+        <span>Ledger: <strong class="text-emerald-400">SEALED (SHA-256)</strong></span>
+      </div>
+      <button id="btn-toggle-demo-mode" onclick="togglePresentationMode()" class="px-3 py-1 rounded bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 pulse-glow">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span id="demo-mode-label">SIH PRESENTATION MODE</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. PRESENTATION MODE STEPPER BAR (SHOWN IN DEMO MODE) -->
+  <!-- ========================================================================= -->
+  <div id="presentation-banner" class="hidden bg-slate-900/90 backdrop-blur border-b border-amber-500/40 px-4 py-2.5 transition-all">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <span class="px-2 py-1 rounded bg-amber-500/20 text-amber-300 font-mono text-xs font-bold border border-amber-500/40">
+          STAGE <span id="pres-step-number">1</span> OF 8
+        </span>
+        <div>
+          <h4 id="pres-step-title" class="text-sm font-bold text-amber-200">Citizen Complaint Ingestion (NCRP/1930)</h4>
+          <p id="pres-step-desc" class="text-xs text-slate-300">Victim reports fraudulent funds diversion. The system ingests and sanitizes transaction logs.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 self-end md:self-center">
+        <button onclick="prevPresStep()" class="px-2.5 py-1 text-xs rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">Previous</button>
+        <button onclick="nextPresStep()" class="px-3.5 py-1 text-xs rounded bg-cyan-600 hover:bg-cyan-500 text-white font-semibold flex items-center gap-1">
+          <span>Next Stage</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button onclick="togglePresentationMode()" class="px-2 py-1 text-xs text-slate-400 hover:text-slate-200">Exit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. TOP NAVIGATION HEADER -->
+  <!-- ========================================================================= -->
+  <header class="bg-[#091024]/90 backdrop-blur border-b border-slate-800 px-4 py-3 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 p-0.5 shadow-lg shadow-cyan-500/20 flex items-center justify-center">
+          <div class="w-full h-full bg-[#070d1e] rounded-[10px] flex items-center justify-center">
+            <svg class="w-6 h-6 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-200 to-blue-400 font-display">
+              FORTIVEXA
+            </h1>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 font-mono">
+              SIH-2026
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">
+            Predictive Cybercrime Intelligence & Cashout Forecasting Framework
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Buttons & User Profile -->
+      <div class="flex items-center gap-3">
+        <!-- Case Selector dropdown -->
+        <div class="hidden lg:flex items-center gap-2 bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-lg text-xs">
+          <span class="text-slate-400">Target Case:</span>
+          <select id="header-case-select" onchange="onSelectCase(this.value)" class="bg-transparent text-cyan-300 font-mono font-semibold focus:outline-none cursor-pointer">
+            <option value="CMP-1001" class="bg-slate-900 text-white">CMP-1001 (₹95,000 - UPI Phishing)</option>
+            <option value="CMP-1002" class="bg-slate-900 text-white">CMP-1002 (₹1,42,000 - Task Scam)</option>
+            <option value="CMP-1003" class="bg-slate-900 text-white">CMP-1003 (₹2,10,000 - Stock Advisory)</option>
+            <option value="CMP-1005" class="bg-slate-900 text-white">CMP-1005 (₹1,85,000 - Loan Extortion)</option>
+            <option value="CMP-2026-8941" class="bg-slate-900 text-white">CMP-8941 (₹4,85,000 - Digital Arrest)</option>
+            <option value="CMP-2026-8942" class="bg-slate-900 text-white">CMP-8942 (₹12,50,000 - Crypto Ponzi)</option>
+          </select>
+        </div>
+
+        <!-- Ingest Case Button -->
+        <button onclick="openIntakeModal()" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs transition-all flex items-center gap-1.5 shadow-md">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+          <span class="hidden sm:inline">New Complaint</span>
+        </button>
+
+        <!-- Reset Button -->
+        <button onclick="resetDataset()" title="Reset to standard 128 complaints" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700">
+          Reset Data
+        </button>
+
+        <!-- Officer Profile -->
+        <div class="flex items-center gap-2 border-l border-slate-700 pl-3">
+          <div class="w-8 h-8 rounded-full bg-slate-800 border border-cyan-500/50 flex items-center justify-center text-cyan-300 font-mono text-xs font-bold">
+            I4C
+          </div>
+          <div class="hidden xl:block text-left text-xs">
+            <div class="font-bold text-slate-200">CYB-DEL-742</div>
+            <div class="text-[10px] text-cyan-400">Special Cyber Ops</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- 4. MAIN LAYOUT: SIDEBAR + CONTENT VIEW -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside class="w-64 bg-[#070d1e] border-r border-slate-800/80 flex flex-col justify-between overflow-y-auto shrink-0 hidden md:flex">
+      <div class="p-3 space-y-1">
+        
+        <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+          Intelligence & Analytics
+        </div>
+
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyan-300 transition-all text-left">
+          <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Command Dashboard</span>
+        </button>
+
+        <button onclick="switchTab('complaints')" id="nav-complaints" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyan-300 transition-all text-left">
+          <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>Citizen Complaints (NCRP)</span>
+          <span class="ml-auto px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-cyan-400" id="badge-complaints-count">128</span>
+        </button>
+
+        <button onclick="switchTab('transactions')" id="nav-transactions" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyan-300 transition-all text-left">
+          <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span>Transaction Flows</span>
+        </button>
+
+        <button onclick="switchTab('network')" id="nav-network" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyan-300 transition-all text-left">
+          <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span>Mule Network Visualizer</span>
+        </button>
+
+        <button onclick="switchTab('linkage')" id="nav-linkage" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyan-300 transition-all text-left">
+          <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <span>Cross-Case Linkage</span>
+          <span class="ml-auto px-1.5 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 text-[10px] font-mono">6 Rings</span>
+        </button>
+
+        <div class="pt-3 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+          AI Forecasting & Actions
+        </div>
+
+        <button onclick="switchTab('prediction')" id="nav-prediction" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyan-300 transition-all text-left">
+          <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <span>Predictive Cashout Engine</span>
+        </button>
+
+        <button onclick="switchTab('simulator')" id="nav-simulator" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyan-300 transition-all text-left">
+          <svg class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          <span>What-If Scenario Simulator</span>
+        </button>
+
+        <button onclick="switchTab('map')" id="nav-map" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyan-300 transition-all text-left">
+          <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          <span>Pan-India GIS Risk Map</span>
+        </button>
+
+        <button onclick="switchTab('intervention')" id="nav-intervention" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyan-300 transition-all text-left">
+          <svg class="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>LEA Dispatch & Sec 91 CrPC</span>
+        </button>
+
+        <div class="pt-3 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+          Security & TRL 5 Readiness
+        </div>
+
+        <button onclick="switchTab('blockchain')" id="nav-blockchain" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyan-300 transition-all text-left">
+          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          <span>Blockchain Evidence Ledger</span>
+        </button>
+
+        <button onclick="switchTab('trl5')" id="nav-trl5" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyan-300 transition-all text-left">
+          <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>TRL 5 Validation & Metrics</span>
+        </button>
+
+      </div>
+
+      <!-- Quick Status Footer in Sidebar -->
+      <div class="p-3 border-t border-slate-800 text-[11px] text-slate-400 bg-slate-900/60 font-mono space-y-1">
+        <div class="flex justify-between">
+          <span>Active Case:</span>
+          <span id="sidebar-active-case" class="text-cyan-300 font-bold">CMP-1001</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Model Engine:</span>
+          <span class="text-emerald-400">XGBoost-GNN v2.5</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Latency (P50):</span>
+          <span class="text-slate-200">180 ms</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Dynamic Content Workspace -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-[#050811]" id="main-content-area">
+      
+      <!-- Content populated dynamically via JS -->
+      <div id="tab-content" class="max-w-7xl mx-auto space-y-6">
+        <!-- Rendered by JavaScript -->
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 5. INTERACTIVE MODALS -->
+  <!-- ========================================================================= -->
+  
+  <!-- Modal: Ingest New Complaint -->
+  <div id="modal-intake" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-2xl bg-[#0a1226] border border-cyan-500/50 rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-cyan-600/30 text-cyan-300 flex items-center justify-center font-bold">
+            +
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-100">NCRP Complaint Intake Gateway</h3>
+            <p class="text-xs text-slate-400">Simulate field citizen report ingestion into the proactive intervention pipeline.</p>
+          </div>
+        </div>
+        <button onclick="closeIntakeModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+
+      <form id="form-intake" onsubmit="handleComplaintSubmit(event)" class="space-y-4 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-slate-400 mb-1">Victim Account ID</label>
+            <input type="text" id="intake-victim" value="ACC-VICTIM-99" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-mono" required>
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Reported Beneficiary / Mule Account</label>
+            <input type="text" id="intake-suspicious" value="ACC-MULE-001" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-mono" required>
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Defrauded Amount (INR ₹)</label>
+            <input type="number" id="intake-amount" value="180000" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-cyan-300 font-mono font-bold" required>
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Cybercrime Category</label>
+            <select id="intake-category" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
+              <option value="UPI Phishing / Impersonation">UPI Phishing / Impersonation</option>
+              <option value="Part-Time Job / Task Scam">Part-Time Job / Task Scam</option>
+              <option value="Fake Investment / Stock Advisory">Fake Investment / Stock Advisory</option>
+              <option value="Digital Arrest / Extortion">Digital Arrest / Extortion</option>
+              <option value="Loan App Harassment">Loan App Harassment</option>
+              <option value="Electricity Bill / KYC Suspension">Electricity Bill / KYC Suspension</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1">Incident Narrative / MO (Modus Operandi)</label>
+          <textarea id="intake-narrative" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="Describe transaction trail, communication medium (WhatsApp/Telegram/APK), etc.">Victim coerced into transferring funds via IMPS following fraudulent digital arrest threat. Layered to suspect mule within 12 minutes.</textarea>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeIntakeModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">Cancel</button>
+          <button type="submit" class="btn-primary px-5 py-2 rounded-lg text-xs font-semibold">Ingest & Run Prediction Pipeline</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Section 91 CrPC Notice Generator -->
+  <div id="modal-sec91" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-2xl bg-[#091226] border border-cyan-500/60 rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <svg class="w-6 h-6 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <h3 class="text-base font-bold text-slate-100">Section 91 CrPC Preservation Notice (Formal LEA Document)</h3>
+        </div>
+        <button onclick="closeSec91Modal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+
+      <div class="bg-white text-slate-900 p-6 rounded-lg text-xs font-serif space-y-3 shadow-inner max-h-[60vh] overflow-y-auto" id="sec91-content">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+        <button onclick="closeSec91Modal()" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs">Close</button>
+        <button onclick="printSec91()" class="btn-primary px-5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print / Export Formal Notice
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Simulated Instant Bank Freeze (NPCI / CFCFRMS Gateway) -->
+  <div id="modal-freeze" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-lg bg-[#0a142c] border border-emerald-500/50 rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center font-bold">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">Instant Account Freeze Dispatched</h3>
+          <p class="text-xs text-slate-400">NPCI / CFCFRMS Automated Switch Response</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-4 font-mono text-xs space-y-2 text-slate-300">
+        <div class="flex justify-between border-b border-slate-800 pb-1.5">
+          <span class="text-slate-400">Gateway Status:</span>
+          <span class="text-emerald-400 font-bold">HTTP 200 OK (FROZEN)</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Freeze Reference ID:</span>
+          <span class="text-cyan-300 font-bold" id="freeze-ref-id">CFCFRMS-FRZ-89104</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Target Mule Account:</span>
+          <span class="text-white" id="freeze-acc-id">ACC-MULE-001</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Amount Secured:</span>
+          <span class="text-emerald-400 font-bold" id="freeze-amt">₹95,000</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Timestamp:</span>
+          <span class="text-slate-300" id="freeze-ts">2026-09-24 13:45:00 UTC</span>
+        </div>
+        <div class="flex justify-between border-t border-slate-800 pt-1.5">
+          <span class="text-slate-400">Cryptographic Seal:</span>
+          <span class="text-cyan-400 text-[10px] truncate max-w-[200px]" id="freeze-hash">e3b0c44298fc1c149afbf4c8996fb924...</span>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-400">
+        The intermediary beneficiary account has been flagged for lien placement across member banks in the NPCI clearing network under Section 91 CrPC protocol.
+      </p>
+
+      <div class="flex justify-end pt-2">
+        <button onclick="closeFreezeModal()" class="btn-primary px-5 py-2 rounded-lg text-xs font-semibold">Acknowledge</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ========================================================================= -->
+  <!-- 6. SCRIPTS -->
+  <!-- ========================================================================= -->
+  <!-- Offline Leaflet JS -->
+  <script src="assets/leaflet.js"></script>
+  <!-- Synthetic Enriched Dataset -->
+  <script src="js/data.js"></script>
+  <!-- Core Application & Modules -->
+  <script src="js/app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "fortivexa",
+  "version": "2.0.0",
+  "description": "FORTIVEXA - Predictive Cybercrime Analytics Framework (SIH26184, TRL 5)",
+  "type": "module",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "cors": "^2.8.5", "express": "^4.19.2" }
+}
